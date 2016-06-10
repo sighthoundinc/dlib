@@ -19,8 +19,13 @@ SET(CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS true)
 SET(blas_found 0)
 SET(lapack_found 0)
 
-
-if (UNIX)
+if (IOS)
+  # on IOS we need to link in the Accelerate framework 
+  set(blas_found 1)
+  set(lapack_found 1)
+  set(blas_libraries "-framework Accelerate"  )
+  set(lapack_libraries "-framework Accelerate" )
+elseif (UNIX)
     message(STATUS "Searching for BLAS and LAPACK")
 
     include(CheckTypeSize)

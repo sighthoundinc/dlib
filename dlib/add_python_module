@@ -63,7 +63,9 @@ if (PYTHON3)
     endif()
     FIND_PACKAGE(PythonLibs 3.4 REQUIRED)
 else()
-    FIND_PACKAGE(Boost 1.41.0 COMPONENTS python)
+    if(NOT Boost_FOUND)
+        FIND_PACKAGE(Boost 1.41.0 COMPONENTS python)
+    endif()
     FIND_PACKAGE(PythonLibs 2.6 REQUIRED)
 endif()
 
@@ -139,7 +141,13 @@ include(${dlib_path}/cmake)
 # dlib in ../dlib/cmake.  We use the target OUPUT_NAME property to ensure the
 # output name is set to what the user asked for (i.e. no _).
 macro(add_python_module module_name module_sources )
-   ADD_LIBRARY(${module_name}_ SHARED ${module_sources} ${ARGN} )
+   if(IOS)
+      # on iOS we need a static lib for python 
+      # (at least with the kivy based python port)
+      ADD_LIBRARY(${module_name}_ STATIC ${module_sources} ${ARGN} )
+   else()
+      ADD_LIBRARY(${module_name}_ SHARED ${module_sources} ${ARGN} )
+   endif()
    TARGET_LINK_LIBRARIES(${module_name}_ ${Boost_LIBRARIES} ${PYTHON_LIBRARIES}  dlib)
    if(WIN32 AND NOT CYGWIN)
       SET_TARGET_PROPERTIES( ${module_name}_
@@ -153,6 +161,13 @@ macro(add_python_module module_name module_sources )
          PROPERTIES
          PREFIX ""
          SUFFIX ".dll"
+         OUTPUT_NAME ${module_name}
+         )
+   elseif(IOS)
+      SET_TARGET_PROPERTIES( ${module_name}_
+         PROPERTIES
+         PREFIX ""
+         SUFFIX ".a"
          OUTPUT_NAME ${module_name}
          )
    else()
@@ -170,6 +185,7 @@ macro(add_python_module module_name module_sources )
        INSTALL(TARGETS ${module_name}_ 
             RUNTIME DESTINATION  "${base_path}/${path}"
             LIBRARY DESTINATION  "${base_path}/${path}"
+            ARCHIVE DESTINATION  "${base_path}/${path}"
            )
    endmacro()
 

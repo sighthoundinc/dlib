@@ -1,8 +1,11 @@
 
 CMAKE_MINIMUM_REQUIRED(VERSION 2.8.4)
 
+# Can't use SSE4 on iOS builds
+if (NOT IOS)
+   set(USE_SSE4_INSTRUCTIONS ON CACHE BOOL "Use SSE4 instructions")
+endif()
 
-set(USE_SSE4_INSTRUCTIONS ON CACHE BOOL "Use SSE4 instructions")
 include(../../dlib/add_python_module)
 
 # Tell cmake to compile all these cpp files into a dlib python module.
